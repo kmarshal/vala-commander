@@ -18,73 +18,51 @@
  */
 
 using Gtk;
-using Ui;
+using App.Config;
 
-public class App : Gtk.Window {
+int main (string[] args) {     
+    Gtk.init (ref args);
 
-	private Box mainLayout;
-	private Toolbar toolbar;
-
-	private App() {
-		this.set_title ("Vala Commander");
-		this.border_width = 10;
-		this.set_default_size (600, 400);
-		this.window_position = WindowPosition.CENTER;
+    try {
+        // If the UI contains custom widgets, their types must've been instantiated once
+        // Type type = typeof(Foo.BarEntry);
+        // assert(type != 0);
+        var builder = new Builder ();
+        builder.add_from_file ("src/glade/main_window.ui");
+        builder.connect_signals (null);
+        var window = builder.get_object ("window") as Window;
+        
+        var toolbar1 = builder.get_object ("bottomToolbar") as Toolbar;
+//        toolbar1.get_style_context ().add_class (STYLE_CLASS_PRIMARY_TOOLBAR);
+		//var open_button = new ToolButton.from_stock (Stock.OPEN);
+        //open_button.is_important = true;
+        //toolbar1.add (open_button);
+		int min, nat;
+		window.get_preferred_width (out min, out nat);
+		stdout.printf ("min: %d, natural: %d\n", min, nat);
 		
-		this.layout ();
+		var rename = new ToolButtonFixed("F2 Rename");
+		toolbar1.add (rename);
+		var view = new ToolButtonFixed("F3 View");
+		toolbar1.add (view);
+		var edit = new ToolButtonFixed("F4 Edit");
+		toolbar1.add (edit);
+		var copy = new ToolButtonFixed("F5 Copy");
+		toolbar1.add (copy);
+		var move = new ToolButtonFixed("F6 Move");
+		toolbar1.add (move);
+		var newF = new ToolButtonFixed("F7 New folder");
+		toolbar1.add (newF);
+		var del = new ToolButtonFixed("F8 Delete");
+		toolbar1.add (del);
+        
+        
+        window.show_all ();
+        Gtk.main ();
+    } catch (Error e) {
+        stderr.printf ("Could not load UI: %s\n", e.message);
+        return 1;
+    } 
 
-		this.destroy.connect(Gtk.main_quit);
-		this.show_all();
-	}
-
-	private void layout() {
-		mainLayout = new Box(Gtk.Orientation.VERTICAL, 0);
-		mainLayout.set_homogeneous (true);
-
-		init_menu();
-		init_toolbar();
-		init_panels();
-		init_buttons_bar();
-		
-		this.add(mainLayout);
-	}
-
-	private void init_menu() {
-		mainLayout.pack_start (new Ui.Menu(), false, true, 0);
-	}
-
-	private void init_toolbar() {
-		toolbar = new Toolbar();
-		toolbar.get_style_context ().add_class (STYLE_CLASS_TOOLBAR);
-
-		var open_button = new ToolButton.from_stock (Stock.OPEN);
-		open_button.is_important = true;
-		toolbar.add(open_button);
-		
-		mainLayout.pack_start (toolbar, false, true, 0);
-	}
-
-	private void init_panels() {
-		Box panelBox = new Box (Orientation.HORIZONTAL, 0);
-		ScrolledWindow leftPanel = new ScrolledWindow(null, null);
-		leftPanel.set_policy (PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
-		ScrolledWindow rightPanel = new ScrolledWindow(null, null);
-		leftPanel.set_policy (PolicyType.AUTOMATIC, PolicyType.AUTOMATIC);
-
-		panelBox.pack_start (leftPanel, false, true, 0);
-		panelBox.pack_start (rightPanel, false, true, 0);
-		mainLayout.pack_start (panelBox, false, true, 0);
-	}
-
-	private void init_buttons_bar() {
-
-	}
-
-	static int main (string[] args) {
-		Gtk.init (ref args);
-		var app = new App ();
-		app.show_all ();
-		Gtk.main ();
-		return 0;
-	}
+    return 0;
 }
