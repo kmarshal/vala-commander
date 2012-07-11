@@ -17,7 +17,7 @@ AM_CFLAGS =\
 bin_PROGRAMS = vala_commander
 
 vala_commander_SOURCES = \
-	vala_commander.vala config.vapi ui/menu.vala
+	vala_commander.vala config.vapi ui/menu.vala glade/main_window.ui signals/signals_window_menu.vala appconfig.vala ui/toolbutton_fixed.vala
 
 vala_commander_VALAFLAGS =  \
 	--pkg gtk+-3.0
@@ -30,4 +30,6 @@ vala_commander_LDADD = $(VALA_COMMANDER_LIBS)
 
 
 SUBDIRS = \
-	ui
+	ui \
+	glade \
+	signals
