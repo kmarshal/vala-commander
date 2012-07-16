@@ -24,5 +24,7 @@ AC_OUTPUT([
 Makefile
 src/Makefile
 src/ui/Makefile
+src/glade/Makefile
+src/signals/Makefile
 
 ])
