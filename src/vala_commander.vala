@@ -20,49 +20,80 @@
 using Gtk;
 using App.Config;
 
-int main (string[] args) {     
-    Gtk.init (ref args);
+class ValaCommander {
 
-    try {
-        // If the UI contains custom widgets, their types must've been instantiated once
-        // Type type = typeof(Foo.BarEntry);
-        // assert(type != 0);
-        var builder = new Builder ();
-        builder.add_from_file ("src/glade/main_window.ui");
-        builder.connect_signals (null);
-        var window = builder.get_object ("window") as Window;
-        
-        var toolbar1 = builder.get_object ("bottomToolbar") as Toolbar;
-//        toolbar1.get_style_context ().add_class (STYLE_CLASS_PRIMARY_TOOLBAR);
-		//var open_button = new ToolButton.from_stock (Stock.OPEN);
-        //open_button.is_important = true;
-        //toolbar1.add (open_button);
-		int min, nat;
-		window.get_preferred_width (out min, out nat);
-		stdout.printf ("min: %d, natural: %d\n", min, nat);
+	private void read_dir(string dir) {
+
+	}
+
+	public static void setup_treeview(ScrolledWindow w, string dir) {
+		var view = new TreeView();
+		var listmodel = new ListStore(4, typeof (string), typeof (string), typeof (string), typeof (string));
+		view.set_model (listmodel);
+		view.insert_column_with_attributes (-1, "Name", new CellRendererText(), "text", 0);
+		view.insert_column_with_attributes (-1, "Type", new CellRendererText(), "text", 1);
+		view.insert_column_with_attributes (-1, "Size", new CellRendererText(), "text", 2);
+		view.insert_column_with_attributes (-1, "Target", new CellRendererText(), "text", 3);
+
+		TreeIter iter;
+		try {
+			var directory = File.new_for_path(dir);
+			var enumerate = directory.enumerate_children ("standard::*", FileQueryInfoFlags.NONE);
+			FileInfo file_info;
+			while ((file_info = enumerate.next_file()) != null) {
+
+				// omit hidden
+				if (file_info.get_attribute_boolean (FileAttribute.STANDARD_IS_HIDDEN)) {
+					continue;
+				}
+
+				// size in kb
+				double size = file_info.get_size() / 1024;
+				
+				listmodel.append (out iter);
+				listmodel.set (iter,
+				               0, file_info.get_name(),
+				               1, file_info.get_content_type (),
+				               2, size.to_string() + " kb" ,
+				               3, file_info.get_attribute_as_string (FileAttribute.STANDARD_SYMLINK_TARGET) );
+			}
+		} catch (Error e) {
+			stdout.printf("Error: %s\n", e.message);
+	    }
 		
-		var rename = new ToolButtonFixed("F2 Rename");
-		toolbar1.add (rename);
-		var view = new ToolButtonFixed("F3 View");
-		toolbar1.add (view);
-		var edit = new ToolButtonFixed("F4 Edit");
-		toolbar1.add (edit);
-		var copy = new ToolButtonFixed("F5 Copy");
-		toolbar1.add (copy);
-		var move = new ToolButtonFixed("F6 Move");
-		toolbar1.add (move);
-		var newF = new ToolButtonFixed("F7 New folder");
-		toolbar1.add (newF);
-		var del = new ToolButtonFixed("F8 Delete");
-		toolbar1.add (del);
-        
-        
-        window.show_all ();
-        Gtk.main ();
-    } catch (Error e) {
-        stderr.printf ("Could not load UI: %s\n", e.message);
-        return 1;
-    } 
+		w.add(view);
+	}
+	
+	public static int main (string[] args) {     
+		Gtk.init (ref args);
 
-    return 0;
+		try {
+		    // If the UI contains custom widgets, their types must've been instantiated once
+		    // Type type = typeof(Foo.BarEntry);
+		    // assert(type != 0);
+		    var builder = new Builder ();
+		    builder.add_from_file (App.Config.UI_FILE);
+		    builder.connect_signals (null);
+		    var window = builder.get_object (App.Config.UI_MAIN_WINDOW) as Window;
+
+			//TreeView leftView = ValaCommander.setup_treeview (Environment.get_home_dir ());
+			var leftScrolled = builder.get_object(App.Config.UI_SCROLLED_LEFT) as ScrolledWindow;
+			var rightScrolled = builder.get_object(App.Config.UI_SCROLLED_RIGHT) as ScrolledWindow;
+
+			var labelCmd = builder.get_object ("label_cmd") as Label;
+			labelCmd.set_text (Environment.get_user_name () + ":" + Environment.get_home_dir () + " $");
+
+			//leftScrolled.set_policy (PolicyType.AUTOMATIC, PolicyType.NEVER);
+			ValaCommander.setup_treeview(leftScrolled, Environment.get_home_dir ());
+			ValaCommander.setup_treeview(rightScrolled, Environment.get_tmp_dir ());
+		    
+		    window.show_all ();
+		    Gtk.main ();
+		} catch (Error e) {
+		    stderr.printf ("Could not load UI: %s\n", e.message);
+		    return 1;
+		} 
+
+		return 0;
+	}
 }
