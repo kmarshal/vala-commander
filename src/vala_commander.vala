@@ -20,15 +20,38 @@
 using Gtk;
 using App.Config;
 
+enum ListColumn {
+	NAME,
+	TYPE,
+	SIZE,
+	LINK_TARGET
+}
+
 class ValaCommander {
-
-	private void read_dir(string dir) {
-
-	}
-
+	
 	public static void setup_treeview(ScrolledWindow w, string dir) {
 		var view = new TreeView();
+		view.enable_grid_lines = TreeViewGridLines.VERTICAL;
+		view.row_activated.connect ( (treePath, treeViewColumn) => {
+			stdout.printf ("Row double clicked\n");
+			stdout.flush ();			
+		});
+		
 		var listmodel = new ListStore(4, typeof (string), typeof (string), typeof (string), typeof (string));
+		listmodel.set_sort_column_id (ListColumn.NAME, SortType.ASCENDING);
+		listmodel.set_sort_func (ListColumn.NAME, (model, iter1, iter2) => {
+			string s1,s2;
+			model.get (iter1, ListColumn.NAME, out s1, -1);
+			model.get (iter2, ListColumn.NAME, out s2, -1);
+
+			string ss1 = s1.down();
+			string ss2 = s2.down();
+			
+			if (ss1 == ss2) return 0;
+			if (ss1 > ss2) return 1;
+			return -1;
+		});
+		
 		view.set_model (listmodel);
 		view.insert_column_with_attributes (-1, "Name", new CellRendererText(), "text", 0);
 		view.insert_column_with_attributes (-1, "Type", new CellRendererText(), "text", 1);
