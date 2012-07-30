@@ -38,9 +38,10 @@ class ValaCommander {
 			treeView.get_model ().get_iter (out iter, treePath);
 //			var info = (FileInfo) iter.user_data;
 //			string s = info.get_attribute_string (FileAttribute.STANDARD_EDIT_NAME);
-			string s = (string) iter.user_data;
+			string name;
+			treeView.get_model ().get (iter, ListColumn.NAME, out name);
 			
-			stdout.printf ("Row double clicked title: %s, path: %s\n", treeViewColumn.title, s);
+			stdout.printf ("Row double clicked title: %s, path: %s\n", treeViewColumn.title, name);
 			stdout.flush ();			
 		});
 		
@@ -58,12 +59,17 @@ class ValaCommander {
 			if (ss1 > ss2) return 1;
 			return -1;
 		});
-		
+
+		/* bold column text */	
+		var cell = new CellRendererText();
+		cell.set("weight_set", true);	
+		cell.set("weight", 700);
+
 		view.set_model (listmodel);
-		view.insert_column_with_attributes (-1, "Name", new CellRendererText(), "text", 0);
-		view.insert_column_with_attributes (-1, "Type", new CellRendererText(), "text", 1);
-		view.insert_column_with_attributes (-1, "Size", new CellRendererText(), "text", 2);
-		view.insert_column_with_attributes (-1, "Target", new CellRendererText(), "text", 3);
+		view.insert_column_with_attributes (-1, "Name", cell, "text", ListColumn.NAME);
+		view.insert_column_with_attributes (-1, "Type", new CellRendererText(), "text", ListColumn.TYPE);
+		view.insert_column_with_attributes (-1, "Size", new CellRendererText(), "text", ListColumn.SIZE);
+		view.insert_column_with_attributes (-1, "Target", new CellRendererText(), "text", ListColumn.LINK_TARGET);
 
 		/*var hiddenCell = new CellRendererText();
 		hiddenCell.set_visible (false);
