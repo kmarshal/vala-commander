@@ -32,8 +32,15 @@ class ValaCommander {
 	public static void setup_treeview(ScrolledWindow w, string dir) {
 		var view = new TreeView();
 		view.enable_grid_lines = TreeViewGridLines.VERTICAL;
-		view.row_activated.connect ( (treePath, treeViewColumn) => {
-			stdout.printf ("Row double clicked\n");
+		view.row_activated.connect ( (treeView, treePath, treeViewColumn) => {
+			TreeIter iter;
+
+			treeView.get_model ().get_iter (out iter, treePath);
+//			var info = (FileInfo) iter.user_data;
+//			string s = info.get_attribute_string (FileAttribute.STANDARD_EDIT_NAME);
+			string s = (string) iter.user_data;
+			
+			stdout.printf ("Row double clicked title: %s, path: %s\n", treeViewColumn.title, s);
 			stdout.flush ();			
 		});
 		
@@ -58,6 +65,10 @@ class ValaCommander {
 		view.insert_column_with_attributes (-1, "Size", new CellRendererText(), "text", 2);
 		view.insert_column_with_attributes (-1, "Target", new CellRendererText(), "text", 3);
 
+		/*var hiddenCell = new CellRendererText();
+		hiddenCell.set_visible (false);
+		view.insert_column_with_attributes (-1, "Path", hiddenCell, "text", 4);*/
+
 		TreeIter iter;
 		try {
 			var directory = File.new_for_path(dir);
@@ -69,16 +80,18 @@ class ValaCommander {
 				if (file_info.get_attribute_boolean (FileAttribute.STANDARD_IS_HIDDEN)) {
 					continue;
 				}
+				//file_info.get_attribute_string (FileAttribute.STANDARD_EDIT_NAME);
 
 				// size in kb
 				double size = file_info.get_size() / 1024;
-				
+
 				listmodel.append (out iter);
 				listmodel.set (iter,
 				               0, file_info.get_name(),
 				               1, file_info.get_content_type (),
 				               2, size.to_string() + " kb" ,
-				               3, file_info.get_attribute_as_string (FileAttribute.STANDARD_SYMLINK_TARGET) );
+				               3, file_info.get_attribute_as_string (FileAttribute.STANDARD_SYMLINK_TARGET));
+				iter.user_data = file_info.get_name ();
 			}
 		} catch (Error e) {
 			stdout.printf("Error: %s\n", e.message);
